@@ -19,7 +19,7 @@ class ExportService:
 
     @staticmethod
     def create_default():
-        raster_exporter = RasterExporter()
+        raster_exporter = RasterExporter.create_default()
 
         exporters = {
             ExportFormat.PNG: raster_exporter,
