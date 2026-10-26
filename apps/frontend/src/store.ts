@@ -31,7 +31,10 @@ export const useStudioStore = create<StudioState>((set) => ({
     part_of_speech: "noun",
     language: "English",
     definition:
-      "the ability to repeat a process with the same quality, over and over again."
+      "the ability to repeat a process with the same quality, over and over again.",
+    source_name: null,
+    source_url: null,
+    source_license: null
   },
   theme: "auto",
   recipeId: null,

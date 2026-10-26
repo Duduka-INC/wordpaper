@@ -280,6 +280,8 @@ select { appearance: none; }
 .render-facts div { display: flex; justify-content: space-between; gap: 12px; font-size: 10px; text-transform: capitalize; }
 .render-facts dt { color: var(--muted); }
 .render-facts dd { margin: 0; text-align: right; }
+.wall-source { margin: 18px 0 0; color: var(--muted); font-size: 9px; line-height: 1.5; }
+.wall-source a { color: var(--ink); border-bottom: 1px solid var(--line-strong); }
 .page-status { min-height: 70vh; display: grid; place-items: center; }
 
 @media (max-width: 1180px) {

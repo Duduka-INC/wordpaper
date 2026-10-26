@@ -6,6 +6,9 @@ export interface ContentSpec {
   part_of_speech: string | null;
   language: string | null;
   definition: string;
+  source_name: string | null;
+  source_url: string | null;
+  source_license: string | null;
 }
 
 export interface AspectRatioSpec {
@@ -105,4 +108,5 @@ export interface WordLookup {
   origin: string | null;
   source_name: string;
   source_url: string;
+  source_license: string;
 }

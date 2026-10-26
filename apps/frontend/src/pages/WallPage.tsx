@@ -124,6 +124,15 @@ export function WallPage() {
           <div><dt>{ru ? "Экспортов" : "Exports"}</dt><dd>{item.export_count}</dd></div>
           <div><dt>{ru ? "Видимость" : "Visibility"}</dt><dd>{item.visibility}</dd></div>
         </dl>
+        {item.spec.content.source_url && (
+          <p className="wall-source">
+            {ru ? "Определение" : "Definition"}: {" "}
+            <a href={item.spec.content.source_url} target="_blank" rel="noreferrer">
+              {item.spec.content.source_name ?? item.spec.content.source_url}
+            </a>
+            {item.spec.content.source_license && ` · ${item.spec.content.source_license}`}
+          </p>
+        )}
       </aside>
     </div>
   );

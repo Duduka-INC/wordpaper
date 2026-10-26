@@ -15,6 +15,9 @@ class ContentSpec(BaseModel):
     part_of_speech: str | None = Field(default=None, max_length=40)
     language: str | None = Field(default=None, max_length=40)
     definition: str = Field(default="", max_length=700)
+    source_name: str | None = Field(default=None, max_length=120)
+    source_url: str | None = Field(default=None, max_length=500)
+    source_license: str | None = Field(default=None, max_length=80)
 
 
 class AspectRatioSpec(BaseModel):
@@ -154,3 +157,4 @@ class WordLookupOut(BaseModel):
     origin: str | None
     source_name: str
     source_url: str
+    source_license: str

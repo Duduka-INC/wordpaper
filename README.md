@@ -75,6 +75,7 @@ Copy `.env.example` when running against your own PostgreSQL instance.
 
 - `GET /api/health` — service and renderer status;
 - `GET /api/v1/meta` — fonts, textures, recipes, anchors and resolutions;
+- `GET /api/v1/words/{word}` — automatic English/Russian dictionary lookup;
 - `POST /api/v1/generations` — four deterministic variants;
 - `POST /api/v1/walls` — save a project and its first immutable version;
 - `GET /api/v1/gallery` — filterable public gallery;
@@ -84,6 +85,11 @@ Copy `.env.example` when running against your own PostgreSQL instance.
 - `GET /api/v1/renders/{render_id}/download` — download and count an export.
 
 Interactive OpenAPI documentation is at `http://127.0.0.1:8000/docs`.
+
+Dictionary definitions are loaded from Free Dictionary API for English and
+Russian Wiktionary for Russian. Their source and license are stored with the
+wallpaper recipe, shown on saved-wall pages and embedded in exported image
+metadata.
 
 ## Tests and production build
 

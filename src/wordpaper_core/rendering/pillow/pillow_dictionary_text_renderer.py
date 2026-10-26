@@ -44,7 +44,7 @@ class PillowDictionaryTextRenderer:
         title_font = self._resolve_title_font(text, canvas_width, block_width)
         meta_size_ratio = max(0.018, text.font.size_ratio * 0.35)
         body_size_ratio = max(0.016, text.font.size_ratio * 0.33)
-        meta_font = self._font_resolver.resolve(
+        meta_font = self._font_resolver.resolve_for_text(
             replace(
                 text.font,
                 size_ratio=meta_size_ratio,
@@ -52,6 +52,7 @@ class PillowDictionaryTextRenderer:
                 style=FontStyle.NORMAL,
             ),
             canvas_width,
+            text.part_of_speech or "",
         )
         transcription_font = self._font_resolver.resolve_for_text(
             replace(
@@ -63,7 +64,7 @@ class PillowDictionaryTextRenderer:
             canvas_width,
             text.transcription or "",
         )
-        meta_italic_font = self._font_resolver.resolve(
+        meta_italic_font = self._font_resolver.resolve_for_text(
             replace(
                 text.font,
                 size_ratio=meta_size_ratio,
@@ -71,8 +72,9 @@ class PillowDictionaryTextRenderer:
                 style=FontStyle.ITALIC,
             ),
             canvas_width,
+            text.language or "",
         )
-        body_font = self._font_resolver.resolve(
+        body_font = self._font_resolver.resolve_for_text(
             replace(
                 text.font,
                 size_ratio=body_size_ratio,
@@ -80,6 +82,7 @@ class PillowDictionaryTextRenderer:
                 style=FontStyle.NORMAL,
             ),
             canvas_width,
+            text.description or "",
         )
 
         working_height = max(canvas_width, canvas_height * 2, 1000)
@@ -127,15 +130,20 @@ class PillowDictionaryTextRenderer:
         canvas_width: int,
         block_width: int,
     ) -> ImageFont.FreeTypeFont:
-        title_font = self._font_resolver.resolve(text.font, canvas_width)
+        title_font = self._font_resolver.resolve_for_text(
+            text.font,
+            canvas_width,
+            text.text,
+        )
         title_width = title_font.getlength(text.text)
         if title_width <= block_width:
             return title_font
 
         fitted_ratio = text.font.size_ratio * block_width / title_width * 0.98
-        return self._font_resolver.resolve(
+        return self._font_resolver.resolve_for_text(
             replace(text.font, size_ratio=max(0.003, fitted_ratio)),
             canvas_width,
+            text.text,
         )
 
     @staticmethod

@@ -1,8 +1,10 @@
 from hashlib import sha256
 from io import BytesIO
 from pathlib import Path
+from urllib.parse import quote
 
 from PIL import Image
+from PIL.PngImagePlugin import PngInfo
 
 from wordpaper_core import (
     AnchorPosition,
@@ -110,6 +112,21 @@ def encode_spec(
     output = BytesIO()
     save_format = {"png": "PNG", "jpeg": "JPEG", "webp": "WEBP"}[image_format]
     save_options = {"quality": quality} if image_format in {"jpeg", "webp"} else {}
+    source = spec.content.source_url
+    if source:
+        encoded_source = quote(source, safe=":/?&=%#")
+        description = (
+            f"Definition source: {encoded_source}; "
+            f"license: {spec.content.source_license or 'see source'}"
+        )
+        if image_format == "png":
+            png_info = PngInfo()
+            png_info.add_text("Description", description)
+            save_options["pnginfo"] = png_info
+        else:
+            exif = Image.Exif()
+            exif[270] = description
+            save_options["exif"] = exif
     image.save(output, format=save_format, **save_options)
     data = output.getvalue()
     return data, CONTENT_TYPES[image_format], sha256(data).hexdigest()

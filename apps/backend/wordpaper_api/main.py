@@ -51,14 +51,21 @@ from wordpaper_api.services import (
 )
 from wordpaper_api.storage import LocalObjectStorage
 from wordpaper_api.word_lookup import (
+    DictionaryRouter,
     FreeDictionaryProvider,
+    RussianWiktionaryProvider,
     WordLookupUnavailableError,
     WordNotFoundError,
 )
 
 
 storage = LocalObjectStorage(settings.storage_root)
-dictionary_provider = FreeDictionaryProvider()
+dictionary_provider = DictionaryRouter(
+    {
+        "en": FreeDictionaryProvider(),
+        "ru": RussianWiktionaryProvider(),
+    }
+)
 
 
 def ensure_system_session(db: Session) -> BrowserSession:
@@ -155,7 +162,7 @@ def health() -> dict[str, str]:
 
 
 @app.get("/api/v1/words/{word}", response_model=WordLookupOut)
-def lookup_word(word: str, language: str = "en") -> WordLookupOut:
+def lookup_word(word: str, language: str = "auto") -> WordLookupOut:
     try:
         entry = dictionary_provider.lookup(word, language)
     except WordNotFoundError as error:

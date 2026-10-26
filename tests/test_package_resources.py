@@ -62,6 +62,23 @@ class PackageResourceTests(unittest.TestCase):
         self.assertTrue(resolver.supports_text(resolved, "[kənˈsɪstənsi]"))
         self.assertTrue(str(resolved.path).endswith("NotoSans.ttf"))
 
+    def test_cyrillic_uses_complete_fallback_font(self):
+        resolver = PillowFontResolver.create_default()
+        selected = Font(
+            "metal_mania",
+            size_ratio=0.05,
+            weight=FontWeight.BOLD,
+        )
+
+        resolved = resolver.resolve_for_text(
+            selected,
+            canvas_width=1000,
+            value="последовательность",
+        )
+
+        self.assertTrue(resolver.supports_text(resolved, "последовательность"))
+        self.assertTrue(str(resolved.path).endswith("NotoSans.ttf"))
+
 
 if __name__ == "__main__":
     unittest.main()

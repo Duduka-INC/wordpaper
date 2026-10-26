@@ -82,7 +82,10 @@ export function StudioPage() {
         transcription: entry.transcription,
         part_of_speech: entry.part_of_speech,
         language: entry.language,
-        definition: entry.definition
+        definition: entry.definition,
+        source_name: entry.source_name,
+        source_url: entry.source_url,
+        source_license: entry.source_license
       })
   });
 
@@ -193,9 +196,10 @@ export function StudioPage() {
               rows={4}
             />
           </label>
-          {lookup.data && (
+          {store.content.source_url && (
             <p className="lookup-source">
-              {ru ? "Источник" : "Source"}: <a href={lookup.data.source_url} target="_blank" rel="noreferrer">{lookup.data.source_name}</a>
+              {ru ? "Источник" : "Source"}: <a href={store.content.source_url} target="_blank" rel="noreferrer">{store.content.source_name ?? store.content.source_url}</a>
+              {store.content.source_license && ` · ${store.content.source_license}`}
             </p>
           )}
         </section>
