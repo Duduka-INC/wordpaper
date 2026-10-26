@@ -115,3 +115,7 @@ artifact = PillowRenderer.create_default().render(
 ```
 
 See `examples/generate_wallpaper.py` for a complete liquid-glass example.
+
+---
+
+Special thanks to Codex/ChatGPT.
