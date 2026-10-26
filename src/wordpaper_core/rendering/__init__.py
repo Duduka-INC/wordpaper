@@ -1,0 +1,1 @@
+"""Rendering contracts and implementations."""

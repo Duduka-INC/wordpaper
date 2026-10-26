@@ -1,0 +1,50 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "wordpaper-core"
+version = "0.1.0"
+description = "A Python library for rendering configurable typographic wallpapers"
+readme = "README.md"
+requires-python = ">=3.13"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [
+    { name = "Dmi3m" },
+]
+dependencies = [
+    "Pillow>=11,<13",
+]
+
+[project.optional-dependencies]
+dev = [
+    "build>=1.2",
+    "pytest>=8",
+    "ruff>=0.9",
+]
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["wordpaper_core*"]
+
+[tool.setuptools.package-data]
+wordpaper_core = [
+    "py.typed",
+    "resources/fonts/*/*.ttf",
+    "resources/fonts/*/*.txt",
+    "resources/textures/*.md",
+    "resources/textures/*/*.jpg",
+    "resources/textures/*/*.png",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 88
+target-version = "py313"
