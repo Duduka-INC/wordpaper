@@ -95,3 +95,14 @@ export interface Meta {
   anchors: MetaOption[];
   resolutions: MetaOption[];
 }
+
+export interface WordLookup {
+  word: string;
+  transcription: string | null;
+  part_of_speech: string | null;
+  language: string;
+  definition: string;
+  origin: string | null;
+  source_name: string;
+  source_url: string;
+}

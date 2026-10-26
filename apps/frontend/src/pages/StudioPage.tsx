@@ -7,7 +7,8 @@ import {
   Download,
   Lock,
   RefreshCw,
-  Sparkles
+  Sparkles,
+  WandSparkles
 } from "lucide-react";
 import { useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -15,14 +16,9 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { api } from "../api";
 import { AnchorGrid } from "../components/AnchorGrid";
 import { StatusBlock } from "../components/StatusBlock";
+import { useLocaleStore } from "../locale";
 import { useStudioStore } from "../store";
 import type { GeneratedVariant } from "../types";
-
-const THEMES = [
-  ["auto", "Авто"],
-  ["light", "Светлая"],
-  ["dark", "Тёмная"]
-] as const;
 
 const RATIOS = [
   [{ width: 16, height: 9 }, "16:9"],
@@ -31,6 +27,13 @@ const RATIOS = [
 ] as const;
 
 export function StudioPage() {
+  const locale = useLocaleStore((state) => state.locale);
+  const ru = locale === "ru";
+  const themes = [
+    ["auto", ru ? "Авто" : "Auto"],
+    ["light", ru ? "Светлая" : "Light"],
+    ["dark", ru ? "Тёмная" : "Dark"]
+  ] as const;
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const sourceWallId = searchParams.get("wall_id");
@@ -69,6 +72,18 @@ export function StudioPage() {
   const saveWall = useMutation({
     mutationFn: () => api.createWall(selected.spec, "public"),
     onSuccess: (wall) => navigate(`/w/${wall.wall_id}`)
+  });
+
+  const lookup = useMutation({
+    mutationFn: api.lookupWord,
+    onSuccess: (entry) =>
+      store.setContent({
+        word: entry.word,
+        transcription: entry.transcription,
+        part_of_speech: entry.part_of_speech,
+        language: entry.language,
+        definition: entry.definition
+      })
   });
 
   useEffect(() => {
@@ -112,24 +127,45 @@ export function StudioPage() {
       <aside className="studio-panel studio-panel--left">
         <div className="panel-title-row">
           <div>
-            <p className="eyebrow">Параметры</p>
-            <h1>Студия</h1>
+            <p className="eyebrow">{ru ? "Параметры" : "Parameters"}</p>
+            <h1>{ru ? "Студия" : "Studio"}</h1>
           </div>
-          <span className="save-status"><Check size={12} /> локально</span>
+          <span className="save-status"><Check size={12} /> {ru ? "локально" : "local"}</span>
         </div>
 
         <section className="control-section">
-          <h2>Содержание</h2>
+          <h2>{ru ? "Содержание" : "Content"}</h2>
           <label className="field">
-            <span>Слово или фраза</span>
-            <input
-              value={store.content.word}
-              onChange={(event) => store.setContent({ word: event.target.value })}
-            />
+            <span>{ru ? "Слово или фраза" : "Word or phrase"}</span>
+            <div className="input-action">
+              <input
+                value={store.content.word}
+                onChange={(event) => store.setContent({ word: event.target.value })}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" && store.content.word.trim()) {
+                    lookup.mutate(store.content.word);
+                  }
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => lookup.mutate(store.content.word)}
+                disabled={!store.content.word.trim() || lookup.isPending}
+                aria-label={ru ? "Заполнить из словаря" : "Auto-fill from dictionary"}
+                title={ru ? "Найти транскрипцию и определение" : "Find pronunciation and definition"}
+              >
+                {lookup.isPending ? <RefreshCw className="spin" size={15} /> : <WandSparkles size={15} />}
+              </button>
+            </div>
           </label>
+          {lookup.isError && (
+            <p className="field-message field-message--error">
+              {lookup.error instanceof Error ? lookup.error.message : ru ? "Слово не найдено" : "Word not found"}
+            </p>
+          )}
           <div className="field-row">
             <label className="field">
-              <span>Транскрипция</span>
+              <span>{ru ? "Транскрипция" : "Pronunciation"}</span>
               <input
                 value={store.content.transcription ?? ""}
                 onChange={(event) =>
@@ -138,7 +174,7 @@ export function StudioPage() {
               />
             </label>
             <label className="field field--short">
-              <span>Часть речи</span>
+              <span>{ru ? "Часть речи" : "Part of speech"}</span>
               <input
                 value={store.content.part_of_speech ?? ""}
                 onChange={(event) =>
@@ -148,7 +184,7 @@ export function StudioPage() {
             </label>
           </div>
           <label className="field">
-            <span>Определение</span>
+            <span>{ru ? "Определение" : "Definition"}</span>
             <textarea
               value={store.content.definition}
               onChange={(event) =>
@@ -157,12 +193,17 @@ export function StudioPage() {
               rows={4}
             />
           </label>
+          {lookup.data && (
+            <p className="lookup-source">
+              {ru ? "Источник" : "Source"}: <a href={lookup.data.source_url} target="_blank" rel="noreferrer">{lookup.data.source_name}</a>
+            </p>
+          )}
         </section>
 
         <section className="control-section">
-          <h2>Характер</h2>
+          <h2>{ru ? "Характер" : "Character"}</h2>
           <div className="segmented">
-            {THEMES.map(([id, label]) => (
+            {themes.map(([id, label]) => (
               <button
                 key={id}
                 type="button"
@@ -174,13 +215,13 @@ export function StudioPage() {
             ))}
           </div>
           <label className="field">
-            <span>Рецепт</span>
+            <span>{ru ? "Рецепт" : "Recipe"}</span>
             <div className="select-wrap">
               <select
                 value={store.recipeId ?? ""}
                 onChange={(event) => store.setRecipe(event.target.value || null)}
               >
-                <option value="">Подобрать автоматически</option>
+                <option value="">{ru ? "Подобрать автоматически" : "Choose automatically"}</option>
                 {meta.data?.recipes.map((recipe) => (
                   <option key={recipe.id} value={recipe.id}>{recipe.label}</option>
                 ))}
@@ -189,7 +230,7 @@ export function StudioPage() {
             </div>
           </label>
           <div className="range-label">
-            <span>Спокойно</span><span>Экспериментально</span>
+            <span>{ru ? "Спокойно" : "Calm"}</span><span>{ru ? "Экспериментально" : "Experimental"}</span>
           </div>
           <Slider.Root
             className="slider-root"
@@ -199,12 +240,12 @@ export function StudioPage() {
             onValueChange={([value]) => store.setIntensity(value)}
           >
             <Slider.Track className="slider-track"><Slider.Range className="slider-range" /></Slider.Track>
-            <Slider.Thumb className="slider-thumb" aria-label="Степень экспериментальности" />
+            <Slider.Thumb className="slider-thumb" aria-label={ru ? "Степень экспериментальности" : "Experiment intensity"} />
           </Slider.Root>
         </section>
 
         <section className="control-section">
-          <h2>Холст</h2>
+          <h2>{ru ? "Холст" : "Canvas"}</h2>
           <div className="ratio-options">
             {RATIOS.map(([ratio, label]) => (
               <button
@@ -226,9 +267,9 @@ export function StudioPage() {
         </section>
 
         <section className="control-section">
-          <h2>Оформление</h2>
+          <h2>{ru ? "Оформление" : "Appearance"}</h2>
           <label className="field">
-            <span>Шрифт</span>
+            <span>{ru ? "Шрифт" : "Typeface"}</span>
             <div className="select-wrap">
               <select
                 value={selected?.spec.font_id ?? ""}
@@ -245,7 +286,7 @@ export function StudioPage() {
             </div>
           </label>
           <label className="field">
-            <span>Текстура фона</span>
+            <span>{ru ? "Текстура фона" : "Background texture"}</span>
             <div className="select-wrap">
               <select
                 value={selected?.spec.background_asset_id ?? ""}
@@ -257,7 +298,7 @@ export function StudioPage() {
                   )
                 }
               >
-                <option value="">Без текстуры</option>
+                <option value="">{ru ? "Без текстуры" : "No texture"}</option>
                 {meta.data?.textures.map((texture) => (
                   <option key={texture.id} value={texture.id}>{texture.label}</option>
                 ))}
@@ -266,7 +307,7 @@ export function StudioPage() {
             </div>
           </label>
           <label className="field">
-            <span>Эффект текста</span>
+            <span>{ru ? "Эффект текста" : "Text effect"}</span>
             <div className="select-wrap">
               <select
                 value={selected?.spec.text_effect ?? "solid"}
@@ -278,14 +319,14 @@ export function StudioPage() {
                   )
                 }
               >
-                <option value="solid">Обычная заливка</option>
+                <option value="solid">{ru ? "Обычная заливка" : "Solid fill"}</option>
                 <option value="liquid_glass">Liquid glass</option>
               </select>
               <ChevronDown size={14} />
             </div>
           </label>
           <label className="field">
-            <span>Цвет текста / оттенок стекла</span>
+            <span>{ru ? "Цвет текста / оттенок стекла" : "Text color / glass tint"}</span>
             <div className="color-field">
               <input
                 type="color"
@@ -300,13 +341,13 @@ export function StudioPage() {
           </label>
           {selected?.spec.text_effect === "liquid_glass" && (
             <div className="field">
-              <span>Интенсивность Liquid Glass</span>
+              <span>{ru ? "Интенсивность Liquid Glass" : "Liquid Glass intensity"}</span>
               <div className="range-label">
-                <span>Мягко</span>
+                <span>{ru ? "Мягко" : "Soft"}</span>
                 <strong>
                   {Math.round((selected.spec.glass_intensity ?? 0.72) * 100)}%
                 </strong>
-                <span>Выразительно</span>
+                <span>{ru ? "Выразительно" : "Bold"}</span>
               </div>
               <Slider.Root
                 className="slider-root"
@@ -330,7 +371,7 @@ export function StudioPage() {
                 </Slider.Track>
                 <Slider.Thumb
                   className="slider-thumb"
-                  aria-label="Интенсивность Liquid Glass"
+                  aria-label={ru ? "Интенсивность Liquid Glass" : "Liquid Glass intensity"}
                 />
               </Slider.Root>
             </div>
@@ -342,7 +383,7 @@ export function StudioPage() {
         <div className="studio-toolbar">
           <span className="mono">{selected?.spec.recipe_id ?? "new composition"}</span>
           <div>
-            <button className="icon-button" type="button" onClick={regenerate} aria-label="Перемешать">
+            <button className="icon-button" type="button" onClick={regenerate} aria-label={ru ? "Перемешать" : "Shuffle"}>
               <RefreshCw size={16} />
             </button>
             <button
@@ -351,7 +392,7 @@ export function StudioPage() {
               disabled={!selected || saveWall.isPending}
               onClick={() => saveWall.mutate()}
             >
-              <Download size={15} /> Сохранить в галерею
+              <Download size={15} /> {ru ? "Сохранить в галерею" : "Save to gallery"}
             </button>
           </div>
         </div>
@@ -361,17 +402,17 @@ export function StudioPage() {
             <StatusBlock />
           ) : selected ? (
             <div className="canvas-frame" style={{ aspectRatio: previewRatio }}>
-              <img src={selected.preview_url} alt="Предпросмотр обоев" />
+              <img src={selected.preview_url} alt={ru ? "Предпросмотр обоев" : "Wallpaper preview"} />
               <span className="canvas-seed mono">SEED {selected.spec.seed}</span>
             </div>
           ) : (
-            <div className="empty-state"><h3>Не удалось собрать варианты</h3></div>
+            <div className="empty-state"><h3>{ru ? "Не удалось собрать варианты" : "Could not create variants"}</h3></div>
           )}
         </div>
 
         <div className="canvas-bottom-bar">
           <div>
-            <span className="eyebrow">Позиция</span>
+            <span className="eyebrow">{ru ? "Позиция" : "Position"}</span>
             <AnchorGrid
               value={activeAnchor}
               onChange={(anchor) => {
@@ -379,13 +420,13 @@ export function StudioPage() {
               }}
             />
           </div>
-          <p>Позиция будет точно пересчитана при сохранении или следующей генерации.</p>
+          <p>{ru ? "Позиция будет точно пересчитана при сохранении или следующей генерации." : "Position is recalculated precisely on save or the next generation."}</p>
         </div>
       </section>
 
       <aside className="studio-panel studio-panel--right">
         <div className="panel-title-row">
-          <div><p className="eyebrow">Генератор</p><h2>Варианты</h2></div>
+          <div><p className="eyebrow">{ru ? "Генератор" : "Generator"}</p><h2>{ru ? "Варианты" : "Variants"}</h2></div>
           <Dice5 size={19} />
         </div>
 
@@ -397,7 +438,7 @@ export function StudioPage() {
               className={index === store.selectedIndex ? "is-active" : ""}
               onClick={() => store.selectVariant(index)}
             >
-              <img src={variant.preview_url} alt={`Вариант ${index + 1}`} />
+              <img src={variant.preview_url} alt={`${ru ? "Вариант" : "Variant"} ${index + 1}`} />
               <span>{String(index + 1).padStart(2, "0")}</span>
             </button>
           ))}
@@ -409,11 +450,11 @@ export function StudioPage() {
           onClick={regenerate}
           disabled={generation.isPending}
         >
-          <Sparkles size={16} /> Создать 4 варианта
+          <Sparkles size={16} /> {ru ? "Создать 4 варианта" : "Create 4 variants"}
         </button>
 
         <section className="locks-section">
-          <div className="locks-heading"><Lock size={14} /><span>Зафиксировать</span></div>
+          <div className="locks-heading"><Lock size={14} /><span>{ru ? "Зафиксировать" : "Lock"}</span></div>
           <div className="lock-chips">
             {["font", "background", "layout", "effect"].map((lock) => (
               <button
@@ -422,10 +463,10 @@ export function StudioPage() {
                 className={store.locks.includes(lock) ? "is-active" : ""}
                 onClick={() => store.toggleLock(lock)}
               >
-                {lock === "font" && "Шрифт"}
-                {lock === "background" && "Фон"}
-                {lock === "layout" && "Позиция"}
-                {lock === "effect" && "Эффект"}
+                {lock === "font" && (ru ? "Шрифт" : "Font")}
+                {lock === "background" && (ru ? "Фон" : "Background")}
+                {lock === "layout" && (ru ? "Позиция" : "Position")}
+                {lock === "effect" && (ru ? "Эффект" : "Effect")}
               </button>
             ))}
           </div>
@@ -433,9 +474,9 @@ export function StudioPage() {
 
         {selected && (
           <div className="variant-details">
-            <div><span>Шрифт</span><strong>{selected.spec.font_id.replaceAll("_", " ")}</strong></div>
-            <div><span>Эффект</span><strong>{selected.spec.text_effect.replaceAll("_", " ")}</strong></div>
-            <div><span>Тема</span><strong>{selected.spec.theme}</strong></div>
+            <div><span>{ru ? "Шрифт" : "Font"}</span><strong>{selected.spec.font_id.replaceAll("_", " ")}</strong></div>
+            <div><span>{ru ? "Эффект" : "Effect"}</span><strong>{selected.spec.text_effect.replaceAll("_", " ")}</strong></div>
+            <div><span>{ru ? "Тема" : "Theme"}</span><strong>{selected.spec.theme}</strong></div>
           </div>
         )}
       </aside>

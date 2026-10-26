@@ -5,8 +5,11 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 
 import { api } from "../api";
 import { StatusBlock } from "../components/StatusBlock";
+import { useLocaleStore } from "../locale";
 
 export function WallPage() {
+  const locale = useLocaleStore((state) => state.locale);
+  const ru = locale === "ru";
   const { wallId = "" } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -33,9 +36,9 @@ export function WallPage() {
     [wall.data]
   );
 
-  if (wall.isLoading) return <div className="page-status"><StatusBlock label="Открываем обои" /></div>;
+  if (wall.isLoading) return <div className="page-status"><StatusBlock label={ru ? "Открываем обои" : "Opening wallpaper"} /></div>;
   if (wall.isError || !wall.data) {
-    return <div className="page-status empty-state"><h2>Обои не найдены</h2><Link to="/">Вернуться в галерею</Link></div>;
+    return <div className="page-status empty-state"><h2>{ru ? "Обои не найдены" : "Wallpaper not found"}</h2><Link to="/">{ru ? "Вернуться в галерею" : "Back to gallery"}</Link></div>;
   }
 
   const item = wall.data;
@@ -51,28 +54,28 @@ export function WallPage() {
   return (
     <div className="wall-page">
       <div className="wall-page__topline">
-        <Link to="/" className="text-link"><ArrowLeft size={15} /> Галерея</Link>
+        <Link to="/" className="text-link"><ArrowLeft size={15} /> {ru ? "Галерея" : "Gallery"}</Link>
         <span className="mono">{item.spec.recipe_id.replaceAll("_", " ")}</span>
       </div>
 
       <section className="wall-viewer">
         <div className="wall-viewer__image" style={{ aspectRatio: ratio }}>
-          {previewUrl && <img src={previewUrl} alt={`Обои ${item.wall_id}`} />}
+          {previewUrl && <img src={previewUrl} alt={ru ? `Обои ${item.wall_id}` : `Wallpaper ${item.wall_id}`} />}
         </div>
         <div className="wall-viewer__index mono">{item.spec.seed}</div>
       </section>
 
       <aside className="export-panel">
-        <p className="eyebrow">Готовые обои</p>
-        <h1>{item.spec.content.word || "Без надписи"}</h1>
+        <p className="eyebrow">{ru ? "Готовые обои" : "Finished wallpaper"}</p>
+        <h1>{item.spec.content.word || (ru ? "Без надписи" : "No text")}</h1>
         <button className="wall-id" type="button" onClick={copyId}>
           <span className="mono">{item.wall_id}</span>
-          {copied ? "Скопировано" : <Copy size={15} />}
+          {copied ? (ru ? "Скопировано" : "Copied") : <Copy size={15} />}
         </button>
 
         <div className="export-controls">
           <label className="field">
-            <span>Разрешение</span>
+            <span>{ru ? "Разрешение" : "Resolution"}</span>
             <select value={resolution} onChange={(event) => setResolution(event.target.value)}>
               <option value="1080p">Full HD · 1080p</option>
               <option value="2k">QHD · 2K</option>
@@ -81,7 +84,7 @@ export function WallPage() {
             </select>
           </label>
           <label className="field">
-            <span>Формат</span>
+            <span>{ru ? "Формат" : "Format"}</span>
             <select value={format} onChange={(event) => setFormat(event.target.value)}>
               <option value="webp">WebP</option>
               <option value="png">PNG</option>
@@ -97,12 +100,12 @@ export function WallPage() {
           disabled={render.isPending}
         >
           {render.isPending ? <LoaderCircle className="spin" size={16} /> : <ExternalLink size={16} />}
-          {render.isPending ? "Рендерим…" : "Создать рендер"}
+          {render.isPending ? (ru ? "Рендерим…" : "Rendering…") : (ru ? "Создать рендер" : "Create render")}
         </button>
 
         {latestExport?.download_url && (
           <a className="button button--accent button--wide" href={latestExport.download_url}>
-            <Download size={16} /> Скачать {latestExport.width}×{latestExport.height}
+            <Download size={16} /> {ru ? "Скачать" : "Download"} {latestExport.width}×{latestExport.height}
           </a>
         )}
 
@@ -112,14 +115,14 @@ export function WallPage() {
           onClick={() => fork.mutate()}
           disabled={fork.isPending}
         >
-          <GitFork size={16} /> Создать свою версию
+          <GitFork size={16} /> {ru ? "Создать свою версию" : "Create your version"}
         </button>
 
         <dl className="render-facts">
-          <div><dt>Рецепт</dt><dd>{item.spec.recipe_id.replaceAll("_", " ")}</dd></div>
-          <div><dt>Шрифт</dt><dd>{item.spec.font_id.replaceAll("_", " ")}</dd></div>
-          <div><dt>Экспортов</dt><dd>{item.export_count}</dd></div>
-          <div><dt>Видимость</dt><dd>{item.visibility}</dd></div>
+          <div><dt>{ru ? "Рецепт" : "Recipe"}</dt><dd>{item.spec.recipe_id.replaceAll("_", " ")}</dd></div>
+          <div><dt>{ru ? "Шрифт" : "Font"}</dt><dd>{item.spec.font_id.replaceAll("_", " ")}</dd></div>
+          <div><dt>{ru ? "Экспортов" : "Exports"}</dt><dd>{item.export_count}</dd></div>
+          <div><dt>{ru ? "Видимость" : "Visibility"}</dt><dd>{item.visibility}</dd></div>
         </dl>
       </aside>
     </div>

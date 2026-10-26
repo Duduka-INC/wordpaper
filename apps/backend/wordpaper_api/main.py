@@ -37,6 +37,7 @@ from wordpaper_api.schemas import (
     UpdateWallRequest,
     WallOut,
     WallpaperSpec,
+    WordLookupOut,
 )
 from wordpaper_api.services import (
     create_project,
@@ -49,9 +50,15 @@ from wordpaper_api.services import (
     seed_gallery,
 )
 from wordpaper_api.storage import LocalObjectStorage
+from wordpaper_api.word_lookup import (
+    FreeDictionaryProvider,
+    WordLookupUnavailableError,
+    WordNotFoundError,
+)
 
 
 storage = LocalObjectStorage(settings.storage_root)
+dictionary_provider = FreeDictionaryProvider()
 
 
 def ensure_system_session(db: Session) -> BrowserSession:
@@ -145,6 +152,17 @@ def find_project(db: Session, wall_id: str) -> WallProject:
 @app.get("/api/health")
 def health() -> dict[str, str]:
     return {"status": "ok", "renderer": "wordpaper-core/0.1.0"}
+
+
+@app.get("/api/v1/words/{word}", response_model=WordLookupOut)
+def lookup_word(word: str, language: str = "en") -> WordLookupOut:
+    try:
+        entry = dictionary_provider.lookup(word, language)
+    except WordNotFoundError as error:
+        raise HTTPException(status_code=404, detail=str(error)) from error
+    except WordLookupUnavailableError as error:
+        raise HTTPException(status_code=503, detail=str(error)) from error
+    return WordLookupOut(**entry.__dict__)
 
 
 @app.get("/api/v1/meta", response_model=MetaResponse)

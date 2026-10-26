@@ -6,8 +6,11 @@ import { Link } from "react-router-dom";
 import { api } from "../api";
 import { StatusBlock } from "../components/StatusBlock";
 import { WallpaperCard } from "../components/WallpaperCard";
+import { useLocaleStore } from "../locale";
 
 export function HomePage() {
+  const locale = useLocaleStore((state) => state.locale);
+  const ru = locale === "ru";
   const [search, setSearch] = useState("");
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState("new");
@@ -37,27 +40,28 @@ export function HomePage() {
     <div className="home-page">
       <section className="hero-section">
         <div className="hero-copy">
-          <p className="eyebrow">Типографическая лаборатория</p>
+          <p className="eyebrow">{ru ? "Типографическая лаборатория" : "Typographic laboratory"}</p>
           <h1>
-            Слова, которые
+            {ru ? "Слова, которые" : "Words worth"}
             <br />
-            хочется <em>оставить.</em>
+            {ru ? <>хочется <em>оставить.</em></> : <em>keeping.</em>}
           </h1>
           <p className="hero-lead">
-            Превращайте определения, мысли и короткие фразы в обои. Выберите
-            направление — остальное соберёт управляемая случайность.
+            {ru
+              ? "Превращайте определения, мысли и короткие фразы в обои. Выберите направление — остальное соберёт управляемая случайность."
+              : "Turn definitions, thoughts and short phrases into wallpapers. Choose a direction and let controlled randomness compose the rest."}
           </p>
           <div className="hero-actions">
             <Link className="button button--dark" to="/studio">
-              Открыть студию <ArrowUpRight size={17} />
+              {ru ? "Открыть студию" : "Open studio"} <ArrowUpRight size={17} />
             </Link>
             <a className="text-link" href="#gallery">
-              Смотреть галерею <ArrowDown size={15} />
+              {ru ? "Смотреть галерею" : "View gallery"} <ArrowDown size={15} />
             </a>
           </div>
         </div>
 
-        <div className="hero-stack" aria-label="Примеры обоев">
+        <div className="hero-stack" aria-label={ru ? "Примеры обоев" : "Wallpaper examples"}>
           {heroItems.length ? (
             heroItems.map((item, index) => (
               <Link
@@ -65,7 +69,7 @@ export function HomePage() {
                 className={`hero-poster hero-poster--${index + 1}`}
                 to={`/w/${item.wall_id}`}
               >
-                <img src={item.cover_url} alt={`Обои со словом ${item.word}`} />
+                <img src={item.cover_url} alt={ru ? `Обои со словом ${item.word}` : `Wallpaper featuring ${item.word}`} />
               </Link>
             ))
           ) : (
@@ -80,12 +84,13 @@ export function HomePage() {
       <section className="gallery-section" id="gallery">
         <div className="gallery-heading">
           <div>
-            <p className="eyebrow">Публичная коллекция</p>
-            <h2>Новые стены</h2>
+            <p className="eyebrow">{ru ? "Публичная коллекция" : "Public collection"}</p>
+            <h2>{ru ? "Новые стены" : "Fresh walls"}</h2>
           </div>
           <p>
-            Каждый объект хранит не только картинку, но и рецепт — его можно
-            открыть, повторить и пересобрать под свой экран.
+            {ru
+              ? "Каждый объект хранит не только картинку, но и рецепт — его можно открыть, повторить и пересобрать под свой экран."
+              : "Every piece keeps both the image and its recipe, ready to open, remix and rebuild for your screen."}
           </p>
         </div>
 
@@ -95,37 +100,37 @@ export function HomePage() {
             <input
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder="Найти по wall_id"
-              aria-label="Поиск по wall id"
+              placeholder={ru ? "Найти по wall_id" : "Find by wall_id"}
+              aria-label={ru ? "Поиск по wall id" : "Search by wall id"}
             />
           </form>
           <div className="tool-group">
             <select value={sort} onChange={(event) => setSort(event.target.value)}>
-              <option value="new">Сначала новые</option>
-              <option value="popular">Популярные</option>
+              <option value="new">{ru ? "Сначала новые" : "Newest first"}</option>
+              <option value="popular">{ru ? "Популярные" : "Popular"}</option>
             </select>
             <select value={theme} onChange={(event) => setTheme(event.target.value)}>
-              <option value="">Любая тема</option>
-              <option value="light">Светлые</option>
-              <option value="dark">Тёмные</option>
+              <option value="">{ru ? "Любая тема" : "Any theme"}</option>
+              <option value="light">{ru ? "Светлые" : "Light"}</option>
+              <option value="dark">{ru ? "Тёмные" : "Dark"}</option>
             </select>
             <select
               value={hasText}
               onChange={(event) => setHasText(event.target.value)}
             >
-              <option value="">Любой контент</option>
-              <option value="true">С надписью</option>
-              <option value="false">Без надписи</option>
+              <option value="">{ru ? "Любой контент" : "Any content"}</option>
+              <option value="true">{ru ? "С надписью" : "With text"}</option>
+              <option value="false">{ru ? "Без надписи" : "Without text"}</option>
             </select>
           </div>
         </div>
 
         {gallery.isLoading ? (
-          <StatusBlock label="Открываем галерею" />
+          <StatusBlock label={ru ? "Открываем галерею" : "Opening gallery"} />
         ) : gallery.isError ? (
           <div className="empty-state">
-            <h3>Галерея пока недоступна</h3>
-            <p>Запустите FastAPI-бэкенд и обновите страницу.</p>
+            <h3>{ru ? "Галерея пока недоступна" : "Gallery is unavailable"}</h3>
+            <p>{ru ? "Запустите FastAPI-бэкенд и обновите страницу." : "Start the API and refresh the page."}</p>
           </div>
         ) : items.length ? (
           <div className="gallery-grid">
@@ -135,8 +140,8 @@ export function HomePage() {
           </div>
         ) : (
           <div className="empty-state">
-            <h3>Ничего не найдено</h3>
-            <p>Попробуйте другой ID или снимите один из фильтров.</p>
+            <h3>{ru ? "Ничего не найдено" : "Nothing found"}</h3>
+            <p>{ru ? "Попробуйте другой ID или снимите один из фильтров." : "Try another ID or clear one of the filters."}</p>
           </div>
         )}
       </section>

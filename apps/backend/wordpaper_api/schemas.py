@@ -143,3 +143,14 @@ class MetaResponse(BaseModel):
     recipes: list[MetaOption]
     anchors: list[MetaOption]
     resolutions: list[MetaOption]
+
+
+class WordLookupOut(BaseModel):
+    word: str
+    transcription: str | None
+    part_of_speech: str | None
+    language: str
+    definition: str
+    origin: str | None
+    source_name: str
+    source_url: str

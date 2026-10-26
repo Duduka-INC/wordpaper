@@ -3,7 +3,8 @@ import type {
   GenerationResponse,
   Meta,
   Wall,
-  WallpaperSpec
+  WallpaperSpec,
+  WordLookup
 } from "./types";
 
 type ApiOptions = Omit<RequestInit, "body"> & { body?: unknown };
@@ -27,6 +28,8 @@ async function apiFetch<T>(path: string, options: ApiOptions = {}): Promise<T> {
 
 export const api = {
   meta: () => apiFetch<Meta>("/api/v1/meta"),
+  lookupWord: (word: string) =>
+    apiFetch<WordLookup>(`/api/v1/words/${encodeURIComponent(word)}?language=en`),
   gallery: (params: URLSearchParams) =>
     apiFetch<GalleryResponse>(`/api/v1/gallery?${params.toString()}`),
   generate: (body: unknown) =>

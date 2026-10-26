@@ -26,7 +26,7 @@ export function AnchorGrid({
   onChange: (value: string) => void;
 }) {
   return (
-    <div className="anchor-grid" aria-label="Позиция текстового блока">
+    <div className="anchor-grid" aria-label="Text block position">
       {POSITIONS.map(([id, column, row]) => (
         <button
           key={id}
