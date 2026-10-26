@@ -1,2 +1,17 @@
 .venv/
 .idea/
+.tmp/
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+node_modules/
+.data/
+.env
+.env.*
+!.env.example
+.pytest_cache/
+.ruff_cache/
+/wallpaper.png
+/src/wallpaper.png
