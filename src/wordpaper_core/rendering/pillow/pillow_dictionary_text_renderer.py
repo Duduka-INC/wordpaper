@@ -5,10 +5,7 @@ from PIL import Image, ImageDraw, ImageFont
 from wordpaper_core.domain.font import FontStyle, FontWeight
 from wordpaper_core.domain.text import Text
 from wordpaper_core.rendering.pillow.pillow_font_resolver import PillowFontResolver
-from wordpaper_core.rendering.pillow.text_placement import (
-    ResolvedTextPlacement,
-    resolve_text_placement,
-)
+from wordpaper_core.rendering.pillow.text_placement import resolve_text_placement
 
 
 class PillowDictionaryTextRenderer:
@@ -27,11 +24,11 @@ class PillowDictionaryTextRenderer:
             text.layout,
             canvas_width,
             canvas_height,
+            block.size,
         )
-        origin = self._resolve_block_origin(placement, block.size)
 
         mask = Image.new("L", canvas_size, 0)
-        mask.paste(block, origin)
+        mask.paste(block, (placement.x, placement.y))
         return mask
 
     def _render_block(
@@ -161,28 +158,6 @@ class PillowDictionaryTextRenderer:
         if width < height:
             return safe_width
         return min(safe_width, round(width * 0.47))
-
-    @staticmethod
-    def _resolve_block_origin(
-        placement: ResolvedTextPlacement,
-        block_size: tuple[int, int],
-    ) -> tuple[int, int]:
-        x = placement.x
-        y = placement.y
-        block_width, block_height = block_size
-        horizontal_anchor, vertical_anchor = placement.anchor
-
-        if horizontal_anchor == "m":
-            x -= block_width // 2
-        elif horizontal_anchor == "r":
-            x -= block_width
-
-        if vertical_anchor == "m":
-            y -= block_height // 2
-        elif vertical_anchor == "b":
-            y -= block_height
-
-        return x, y
 
     @staticmethod
     def _build_meta_segments(
