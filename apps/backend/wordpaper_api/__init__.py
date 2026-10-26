@@ -1,0 +1,1 @@
+"""Wordpaper HTTP API."""
