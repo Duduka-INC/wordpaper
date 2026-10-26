@@ -28,7 +28,7 @@ export function Logo() {
         aria-label={locale === "ru" ? "Switch to English" : "Переключить на русский"}
         title={locale === "ru" ? "English" : "Русский"}
       >
-        {locale === "ru" ? "EN" : "RU"}
+        <span>{locale === "ru" ? "EN" : "RU"}</span>
       </button>
     </div>
   );
