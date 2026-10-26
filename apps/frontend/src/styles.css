@@ -83,7 +83,7 @@ img { display: block; max-width: 100%; }
 }
 .theme-toggle:hover { transform: rotate(12deg); border-color: var(--ink); }
 .locale-toggle { font: 700 10px/1 "SFMono-Regular", Consolas, monospace; letter-spacing: .03em; }
-.locale-toggle > span { transform: translate(.5px, .5px); }
+.locale-toggle > span { transform: translateX(.5px); }
 .site-nav { display: flex; align-items: center; gap: 28px; font-size: 13px; }
 .site-nav > a:not(.header-cta) { color: var(--muted); }
 .header-cta {
