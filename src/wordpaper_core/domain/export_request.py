@@ -5,6 +5,13 @@ from wordpaper_core.domain.resolution_preset import ResolutionPreset
 from wordpaper_core.domain.wallpaper import Wallpaper
 
 
+class ExportFormat(StrEnum):
+    PNG = "png"
+    JPEG = "jpeg"
+    WEBP = "webp"
+    SVG = "svg"
+
+
 @dataclass(frozen=True)
 class ExportRequest:
     wallpaper: Wallpaper
@@ -29,10 +36,3 @@ class ExportRequest:
             width=resolution.width,
             height=resolution.height,
         )
-
-
-class ExportFormat(StrEnum):
-    PNG = "png"
-    JPEG = "jpeg"
-    WEBP = "webp"
-    SVG = "svg"
