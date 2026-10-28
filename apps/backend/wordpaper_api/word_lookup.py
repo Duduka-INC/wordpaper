@@ -117,6 +117,88 @@ class FreeDictionaryProvider:
         )
 
 
+class WikipediaSummaryProvider:
+    """Fallback for terms and acronyms missing from the dictionary API."""
+
+    base_url = "https://en.wikipedia.org/api/rest_v1/page/summary"
+
+    def __init__(self, opener: Callable[..., Any] = urlopen) -> None:
+        self._opener = opener
+
+    def lookup(self, word: str, language: str = "en") -> DictionaryEntry:
+        normalized_word = word.strip()
+        if not normalized_word:
+            raise WordNotFoundError("Enter a word first")
+        if language != "en":
+            raise WordNotFoundError("Wikipedia fallback currently supports English")
+
+        page_slug = quote(normalized_word.replace(" ", "_"))
+        request = Request(
+            f"{self.base_url}/{page_slug}",
+            headers={"User-Agent": "wordpaper/0.1 (dictionary lookup)"},
+        )
+        try:
+            with self._opener(request, timeout=8) as response:
+                payload = json.load(response)
+        except HTTPError as error:
+            if error.code == 404:
+                raise WordNotFoundError(
+                    f'No encyclopedia entry for "{normalized_word}"'
+                ) from error
+            raise WordLookupUnavailableError("Wikipedia returned an error") from error
+        except (URLError, TimeoutError, json.JSONDecodeError) as error:
+            raise WordLookupUnavailableError("Wikipedia is unavailable") from error
+
+        definition = " ".join(str(payload.get("extract") or "").split())
+        if not definition:
+            raise WordNotFoundError(
+                f'No usable encyclopedia entry for "{normalized_word}"'
+            )
+        if len(definition) > 700:
+            definition = definition[:697].rsplit(" ", 1)[0].rstrip() + "..."
+
+        title = str(payload.get("title") or normalized_word)
+        source_url = (
+            payload.get("content_urls", {}).get("desktop", {}).get("page")
+            or f"https://en.wikipedia.org/wiki/{quote(title.replace(' ', '_'))}"
+        )
+        return DictionaryEntry(
+            word=title,
+            transcription=None,
+            part_of_speech=None,
+            language="English",
+            definition=definition,
+            origin=None,
+            source_name="Wikipedia",
+            source_url=source_url,
+            source_license="CC BY-SA 4.0 / GFDL",
+        )
+
+
+class FallbackDictionaryProvider:
+    def __init__(self, providers: tuple[DictionaryProvider, ...]) -> None:
+        if not providers:
+            raise ValueError("At least one dictionary provider is required")
+        self._providers = providers
+
+    def lookup(self, word: str, language: str = "en") -> DictionaryEntry:
+        not_found_error: WordNotFoundError | None = None
+        unavailable_error: WordLookupUnavailableError | None = None
+        for provider in self._providers:
+            try:
+                return provider.lookup(word, language)
+            except WordNotFoundError as error:
+                not_found_error = error
+            except WordLookupUnavailableError as error:
+                unavailable_error = error
+
+        if unavailable_error is not None:
+            raise unavailable_error
+        if not_found_error is not None:
+            raise not_found_error
+        raise WordNotFoundError(f'No entry for "{word.strip()}"')
+
+
 class RussianWiktionaryProvider:
     """Extract a compact Russian entry from the Russian Wiktionary API."""
 

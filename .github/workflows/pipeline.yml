@@ -17,6 +17,8 @@ env:
 jobs:
   core:
     runs-on: ubuntu-latest
+    env:
+      PYTHONPATH: apps/backend
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -27,7 +29,7 @@ jobs:
       - name: Ruff (advisory until existing warnings are resolved)
         continue-on-error: true
         run: ruff check src apps/backend tests
-      - run: pytest
+      - run: pytest tests apps/backend/tests
 
   web:
     runs-on: ubuntu-latest

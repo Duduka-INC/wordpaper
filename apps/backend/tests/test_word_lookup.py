@@ -4,8 +4,10 @@ import unittest
 
 from wordpaper_api.word_lookup import (
     DictionaryRouter,
+    FallbackDictionaryProvider,
     FreeDictionaryProvider,
     RussianWiktionaryProvider,
+    WikipediaSummaryProvider,
     WordNotFoundError,
     detect_language,
 )
@@ -54,6 +56,30 @@ class WordLookupTests(unittest.TestCase):
 
         with self.assertRaises(WordNotFoundError):
             provider.lookup("  ")
+
+    def test_falls_back_to_wikipedia_for_dictionary_miss(self) -> None:
+        class MissingProvider:
+            def lookup(self, *_args, **_kwargs):
+                raise WordNotFoundError("missing")
+
+        payload = {
+            "title": "SVG",
+            "extract": "Scalable Vector Graphics is an XML-based vector image format.",
+            "content_urls": {
+                "desktop": {"page": "https://en.wikipedia.org/wiki/SVG"}
+            },
+        }
+        wikipedia = WikipediaSummaryProvider(
+            opener=lambda *_args, **_kwargs: FakeResponse(json.dumps(payload).encode())
+        )
+        provider = FallbackDictionaryProvider((MissingProvider(), wikipedia))
+
+        entry = provider.lookup("svg")
+
+        self.assertEqual(entry.word, "SVG")
+        self.assertEqual(entry.transcription, None)
+        self.assertEqual(entry.definition, payload["extract"])
+        self.assertEqual(entry.source_name, "Wikipedia")
 
     def test_detects_language_from_alphabet(self) -> None:
         self.assertEqual(detect_language("serendipity"), "en")

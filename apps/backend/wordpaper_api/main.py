@@ -52,8 +52,10 @@ from wordpaper_api.services import (
 from wordpaper_api.storage import LocalObjectStorage
 from wordpaper_api.word_lookup import (
     DictionaryRouter,
+    FallbackDictionaryProvider,
     FreeDictionaryProvider,
     RussianWiktionaryProvider,
+    WikipediaSummaryProvider,
     WordLookupUnavailableError,
     WordNotFoundError,
 )
@@ -62,7 +64,9 @@ from wordpaper_api.word_lookup import (
 storage = LocalObjectStorage(settings.storage_root)
 dictionary_provider = DictionaryRouter(
     {
-        "en": FreeDictionaryProvider(),
+        "en": FallbackDictionaryProvider(
+            (FreeDictionaryProvider(), WikipediaSummaryProvider())
+        ),
         "ru": RussianWiktionaryProvider(),
     }
 )
